@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кадастр.Помощник — рабочее пространство</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --canvas: light-dark(#f4f7f7, #101817);
+  --surface: light-dark(#ffffff, #182220);
+  --surface-2: light-dark(#f8faf9, #202c29);
+  --text: light-dark(#1b2a27, #edf4f1);
+  --muted: light-dark(#6d7b77, #a7b5b0);
+  --border: light-dark(#e1e9e5, #33423d);
+  --green: light-dark(#167a62, #49c39c);
+  --green-2: light-dark(#e2f5ed, #183b31);
+  --navy: #152923;
+  --navy-2: #1e3b31;
+  --warning: light-dark(#a86a16, #edba62);
+  --warning-bg: light-dark(#fff4de, #3c3020);
+  --danger: light-dark(#b34343, #f08787);
+  --danger-bg: light-dark(#fff0ef, #3d2323);
+  --blue: light-dark(#426fb1, #91b9ff);
+  --blue-bg: light-dark(#edf4ff, #202f47);
+  --shadow: 0 8px 28px rgba(18, 46, 35, .06);
+}
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--text); background: var(--canvas); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+.app { min-height: 100vh; width: 100%; background: var(--canvas); }
+.layout { display: grid; grid-template-columns: 252px minmax(0,1fr); min-height: 100vh; }
+.sidebar { background: var(--navy); color: #e8f0ec; padding: 25px 17px 20px; display: flex; flex-direction: column; gap: 30px; }
+.brand { display: flex; align-items: center; gap: 11px; padding: 0 9px; }
+.brand-mark { width: 39px; height: 39px; border-radius: 13px; background: #55c49b; display: grid; place-items: center; color: #113429; flex-shrink: 0; }
+.brand-name { font-size: 16px; font-weight: 760; letter-spacing: -.35px; }
+.brand-caption { font-size: 11px; color: #a6bbb2; margin-top: 3px; }
+.nav-label { color: #829b90; font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 750; padding: 0 12px 9px; }
+.nav { display: grid; gap: 5px; }
+.nav button { display:flex; align-items:center; gap: 12px; width:100%; text-align:left; border:0; color:#c6d6cf; background:transparent; border-radius:11px; padding:12px 13px; font-size:13px; transition:background .15s, color .15s; }
+.nav button:hover { background:rgba(255,255,255,.06); color:white; }
+.nav button.active { background:#294b3e; color:#76e0b5; font-weight:650; }
+.nav-icon { width:18px; height:18px; display:inline-grid; place-items:center; font-size:16px; }
+.sidebar-bottom { margin-top:auto; }
+.help-card { background:#1d3a30; border:1px solid #2a4b3e; padding:15px; border-radius:14px; }
+.help-card b { font-size:12px; display:block; margin-bottom:6px; }
+.help-card p { color:#a8bcb3; font-size:11px; line-height:1.5; margin:0 0 12px; }
+.help-card button { color:#73dbaf; border:0; background:transparent; padding:0; font-size:11px; font-weight:700; }
+.sidebar-foot { color:#789087; font-size:10px; padding:13px 8px 0; line-height:1.6; }
+.main { min-width:0; }
+.topbar { height:77px; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:0 35px; border-bottom:1px solid var(--border); background:var(--surface); }
+.crumb { color:var(--muted); font-size:12px; }
+.crumb strong { color:var(--text); font-weight:650; }
+.top-actions { display:flex; align-items:center; gap:12px; }
+.demo-pill { display:inline-flex; align-items:center; gap:7px; padding:7px 10px; border:1px solid var(--border); border-radius:999px; color:var(--muted); font-size:11px; font-weight:650; white-space:nowrap; }
+.dot { width:7px; height:7px; background:#e7ad45; border-radius:100%; }
+.avatar { background:var(--green-2); color:var(--green); font-weight:800; border-radius:50%; width:34px; height:34px; display:grid; place-items:center; font-size:12px; }
+.content { max-width:1470px; padding:31px 35px 50px; margin:0 auto; }
+.page-head { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin-bottom:25px; }
+.eyebrow { font-size:10px; font-weight:800; letter-spacing:1.4px; color:var(--green); text-transform:uppercase; margin-bottom:9px; }
+h1 { font-size:29px; line-height:1.15; letter-spacing:-.8px; margin:0; font-weight:760; }
+.page-intro { color:var(--muted); font-size:13px; line-height:1.55; margin:10px 0 0; max-width:640px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:11px 15px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text); font-weight:650; font-size:12px; transition:transform .1s, background .15s; }
+.btn:hover { transform:translateY(-1px); }
+.btn-primary { background:var(--green); color:white; border-color:var(--green); }
+.btn-primary:hover { background:#116851; }
+.btn-soft { color:var(--green); background:var(--green-2); border-color:transparent; }
+.btn-small { padding:8px 11px; font-size:11px; }
+.grid { display:grid; gap:17px; }
+.stats { grid-template-columns:repeat(4,minmax(0,1fr)); margin-bottom:20px; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); min-width:0; }
+.stat-card { padding:18px 19px; }
+.stat-top { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.stat-label { color:var(--muted); font-size:11px; font-weight:600; }
+.stat-icon { width:31px; height:31px; display:grid; place-items:center; border-radius:10px; background:var(--green-2); color:var(--green); font-size:15px; }
+.stat-value { font-size:27px; line-height:1.1; letter-spacing:-.8px; font-weight:760; margin-top:13px; }
+.stat-foot { color:var(--muted); font-size:10px; margin-top:8px; }
+.stat-foot span { color:var(--green); font-weight:700; }
+.dashboard-columns { grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr); align-items:start; }
+.card-head { padding:20px 22px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:1px solid var(--border); }
+.card-title { margin:0; font-size:14px; font-weight:750; letter-spacing:-.25px; }
+.card-subtitle { color:var(--muted); font-size:11px; margin-top:5px; }
+.text-link { border:0; background:transparent; color:var(--green); font-size:11px; font-weight:750; padding:5px 0; }
+.object-list { display:grid; }
+.object-row { display:grid; grid-template-columns:37px minmax(0,1fr) auto; gap:12px; align-items:center; padding:16px 22px; border-bottom:1px solid var(--border); }
+.object-row:last-child { border-bottom:0; }
+.obj-icon { display:grid; place-items:center; width:37px; height:37px; background:var(--surface-2); border-radius:11px; font-size:16px; }
+.obj-name { font-size:12px; font-weight:750; margin-bottom:4px; }
+.obj-meta { color:var(--muted); font-size:10px; line-height:1.5; }
+.status { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:6px 9px; font-size:10px; white-space:nowrap; font-weight:700; }
+.status.ok { color:var(--green); background:var(--green-2); }
+.status.warn { color:var(--warning); background:var(--warning-bg); }
+.status.error { color:var(--danger); background:var(--danger-bg); }
+.status.neutral { color:var(--muted); background:var(--surface-2); }
+.status-dot { display:inline-block; width:5px; height:5px; background:currentColor; border-radius:50%; }
+.quick-actions { padding:18px; display:grid; gap:10px; }
+.quick-action { width:100%; display:flex; align-items:center; gap:12px; text-align:left; padding:13px; border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text); }
+.quick-action:hover { border-color:var(--green); background:var(--surface-2); }
+.qa-icon { display:grid; place-items:center; width:38px; height:38px; border-radius:11px; background:var(--green-2); font-size:17px; }
+.qa-copy { flex:1; min-width:0; }
+.qa-copy b { display:block; font-size:12px; }
+.qa-copy span { display:block; color:var(--muted); font-size:10px; margin-top:4px; line-height:1.4; }
+.arrow { color:var(--muted); font-size:16px; }
+.notice { display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); margin-top:18px; }
+.notice-icon { color:var(--green); font-size:16px; padding-top:1px; }
+.notice p { font-size:11px; color:var(--muted); line-height:1.55; margin:0; }
+.notice strong { color:var(--text); }
+.page { display:none; }
+.page.active { display:block; animation:fade .18s ease-out; }
+@keyframes fade { from { opacity:.7; transform:translateY(3px); } to { opacity:1; transform:none; } }
+.two-col { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(290px,.8fr); gap:18px; align-items:start; }
+.form-card { padding:23px; }
+.section-head { display:flex; align-items:center; gap:10px; margin:0 0 18px; font-size:14px; font-weight:760; }
+.section-number { width:27px; height:27px; display:grid; place-items:center; background:var(--green-2); color:var(--green); border-radius:9px; font-size:11px; }
+.field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
+.field { min-width:0; display:flex; flex-direction:column; gap:7px; }
+.field.full { grid-column:1 / -1; }
+.field label { font-size:11px; color:var(--muted); font-weight:700; }
+.field input,.field select,.field textarea { width:100%; background:var(--surface-2); color:var(--text); border:1px solid var(--border); border-radius:9px; padding:11px 12px; font-size:12px; outline:none; }
+.field input:focus,.field select:focus,.field textarea:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--green-2); }
+.field textarea { resize:vertical; min-height:84px; line-height:1.5; }
+.field-hint { font-size:10px; color:var(--muted); line-height:1.45; }
+.form-actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:22px; }
+.upload-box { position:relative; padding:27px 18px; text-align:center; border:1.5px dashed light-dark(#b4c8bf,#4c695d); border-radius:13px; background:var(--surface-2); transition:all .15s; }
+.upload-box.dragging { border-color:var(--green); background:var(--green-2); }
+.upload-symbol { display:grid; place-items:center; margin:0 auto 12px; width:42px; height:42px; border-radius:13px; background:var(--green-2); color:var(--green); font-size:20px; }
+.upload-box b { font-size:12px; display:block; }
+.upload-box p { margin:7px 0 13px; color:var(--muted); font-size:10px; line-height:1.5; }
+.upload-box input[type=file] { display:none; }
+.file-list { margin-top:12px; display:grid; gap:8px; }
+.file-item { display:flex; align-items:center; gap:10px; padding:10px; border:1px solid var(--border); border-radius:10px; }
+.file-badge { width:31px; height:34px; border-radius:7px; display:grid; place-items:center; color:var(--green); background:var(--green-2); font-size:9px; font-weight:850; }
+.file-info { min-width:0; flex:1; }
+.file-info b { display:block; font-size:10px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.file-info span { display:block; font-size:9px; color:var(--muted); margin-top:4px; }
+.file-remove { border:0; background:transparent; color:var(--muted); font-size:16px; padding:3px; }
+.mini-card { padding:18px; }
+.mini-card h3 { margin:0 0 7px; font-size:13px; }
+.mini-card > p { color:var(--muted); font-size:11px; line-height:1.55; margin:0 0 14px; }
+.check-list { display:grid; gap:10px; }
+.check-item { display:flex; align-items:flex-start; gap:9px; font-size:11px; line-height:1.45; }
+.check-square { width:17px; height:17px; border:1px solid var(--border); background:var(--surface-2); border-radius:5px; flex-shrink:0; display:grid; place-items:center; color:var(--green); font-size:10px; }
+.check-square.checked { border-color:var(--green); background:var(--green-2); }
+.results { margin-top:19px; }
+.results-head { display:flex; justify-content:space-between; align-items:flex-start; gap:15px; margin-bottom:13px; }
+.results-title { font-size:15px; font-weight:780; }
+.results-caption { font-size:11px; color:var(--muted); margin-top:5px; line-height:1.5; }
+.finding { display:grid; grid-template-columns:30px minmax(0,1fr) auto; gap:12px; align-items:start; padding:16px 18px; border-bottom:1px solid var(--border); }
+.finding:last-child { border-bottom:0; }
+.finding-icon { width:28px; height:28px; border-radius:9px; display:grid; place-items:center; font-weight:800; font-size:13px; }
+.finding-icon.good { background:var(--green-2); color:var(--green); }
+.finding-icon.warn { background:var(--warning-bg); color:var(--warning); }
+.finding-icon.bad { background:var(--danger-bg); color:var(--danger); }
+.finding b { display:block; font-size:12px; margin:2px 0 5px; }
+.finding p { color:var(--muted); font-size:11px; line-height:1.55; margin:0; }
+.finding .tag { font-size:9px; padding:5px 7px; background:var(--surface-2); border-radius:6px; color:var(--muted); white-space:nowrap; }
+.disclaimer { font-size:10px; line-height:1.55; color:var(--muted); padding:12px 15px; border-top:1px solid var(--border); }
+.empty-state { padding:32px; text-align:center; color:var(--muted); }
+.empty-state .big { font-size:24px; margin-bottom:10px; }
+.empty-state b { display:block; color:var(--text); font-size:12px; margin-bottom:6px; }
+.empty-state p { font-size:11px; line-height:1.5; margin:0 auto; max-width:380px; }
+.kv-list { display:grid; }
+.kv-row { display:grid; grid-template-columns:minmax(130px,.7fr) minmax(0,1.3fr); gap:15px; padding:12px 0; border-bottom:1px solid var(--border); }
+.kv-row:last-child { border-bottom:0; }
+.kv-key { font-size:11px; color:var(--muted); }
+.kv-value { font-size:12px; font-weight:650; overflow-wrap:anywhere; }
+.object-actions { display:flex; flex-wrap:wrap; gap:9px; }
+.search-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.search { min-width:200px; flex:1; position:relative; }
+.search input { width:100%; padding:11px 13px 11px 36px; border-radius:10px; background:var(--surface); color:var(--text); border:1px solid var(--border); font-size:12px; }
+.search span { position:absolute; left:12px; top:10px; color:var(--muted); }
+.doc-card { padding:20px; }
+.doc-card h3 { margin:0 0 8px; font-size:13px; }
+.doc-card p { color:var(--muted); font-size:11px; line-height:1.55; margin:0 0 14px; }
+.doc-link { display:flex; gap:11px; align-items:flex-start; padding:15px 0; border-bottom:1px solid var(--border); }
+.doc-link:last-child { border-bottom:0; }
+.doc-symbol { width:32px; height:34px; display:grid; place-items:center; background:var(--blue-bg); color:var(--blue); border-radius:8px; font-weight:850; font-size:9px; flex-shrink:0; }
+.doc-link b { font-size:12px; display:block; margin-bottom:5px; }
+.doc-link p { margin:0 0 6px; }
+.doc-link a { color:var(--green); font-size:10px; font-weight:700; text-decoration:none; }
+.doc-link a:hover { text-decoration:underline; }
+.pill-note { display:inline-block; padding:5px 8px; font-size:9px; color:var(--warning); background:var(--warning-bg); border-radius:7px; margin:2px 0 5px; }
+.toast { position:fixed; right:24px; bottom:24px; z-index:20; padding:13px 16px; border-radius:12px; background:var(--navy); color:white; box-shadow:0 15px 40px rgba(0,0,0,.2); font-size:12px; opacity:0; transform:translateY(10px); pointer-events:none; transition:all .25s; max-width:min(420px,calc(100% - 40px)); }
+.toast.show { opacity:1; transform:none; }
+.assistant-layout { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(250px,.75fr); gap:18px; align-items:start; }
+.assistant-card { overflow:hidden; }
+.chat-header { padding:18px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:11px; }
+.chat-status { width:10px; height:10px; border-radius:50%; background:var(--green); box-shadow:0 0 0 4px var(--green-2); flex-shrink:0; }
+.chat-messages { display:grid; gap:14px; padding:20px; max-height:490px; overflow:auto; }
+.chat-message { display:grid; gap:5px; max-width:94%; }
+.chat-message.user { justify-self:end; }
+.chat-role { color:var(--muted); font-size:10px; font-weight:700; }
+.chat-message.user .chat-role { text-align:right; }
+.chat-bubble { border:1px solid var(--border); border-radius:13px; padding:12px 14px; background:var(--surface-2); font-size:12px; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; }
+.chat-message.user .chat-bubble { background:var(--green-2); border-color:transparent; }
+.chat-compose { padding:14px; border-top:1px solid var(--border); display:grid; gap:10px; }
+.chat-compose textarea { width:100%; min-height:78px; resize:vertical; padding:12px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); color:var(--text); font:inherit; font-size:12px; line-height:1.5; }
+.chat-compose textarea:focus { outline:2px solid var(--green-2); border-color:var(--green); }
+.chat-compose-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.chat-suggestions { display:flex; gap:8px; flex-wrap:wrap; padding:0 20px 18px; }
+.chat-suggestions button { border:1px solid var(--border); border-radius:999px; background:var(--surface); color:var(--text); padding:8px 10px; font-size:10px; text-align:left; }
+.chat-suggestions button:hover { border-color:var(--green); background:var(--green-2); }
+.chat-disclaimer { color:var(--muted); font-size:10px; line-height:1.55; }
+@media (max-width:900px) { .assistant-layout { grid-template-columns:1fr; } }
+.mobile-menu { display:none; }
+@media (max-width:1100px) { .layout { grid-template-columns:220px minmax(0,1fr); } .content { padding:25px 24px 40px; } .topbar { padding:0 24px; } .stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .dashboard-columns { grid-template-columns:minmax(0,1fr); } }
+@media (max-width:740px) { .layout { grid-template-columns:1fr; } .sidebar { display:none; } .sidebar.mobile-open { display:flex; position:fixed; z-index:15; inset:0 auto 0 0; width:min(290px,85vw); overflow:auto; box-shadow:20px 0 60px rgba(0,0,0,.28); } .mobile-menu { display:inline-flex; } .topbar { height:65px; padding:0 16px; } .content { padding:22px 15px 35px; } .page-head { flex-direction:column; } h1 { font-size:25px; } .top-actions { gap:7px; } .demo-pill { font-size:10px; padding:6px 8px; } .stats { gap:10px; } .stat-card { padding:14px; } .stat-value { font-size:23px; } .two-col { grid-template-columns:1fr; } .field-grid { grid-template-columns:1fr; } .field.full { grid-column:auto; } .object-row { padding:14px; grid-template-columns:34px minmax(0,1fr); } .object-row > .status { grid-column:2; justify-self:start; margin-top:-4px; } .card-head { padding:16px; } .finding { grid-template-columns:28px minmax(0,1fr); padding:14px; } .finding .tag { grid-column:2; justify-self:start; } .kv-row { grid-template-columns:1fr; gap:5px; } }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7.2 12 3l8 4.2v9.6L12 21l-8-4.2V7.2Z" stroke="currentColor" stroke-width="1.8"/><path d="M4.5 7.5 12 11.5l7.5-4M12 11.5V20.5M8.2 5l8 4.3" stroke="currentColor" stroke-width="1.6"/></svg></div>
+        <div><div class="brand-name">Кадастр.Помощник</div><div class="brand-caption">рабочее пространство инженера</div></div>
+      </div>
+      <div>
+        <div class="nav-label">Рабочее место</div>
+        <nav class="nav" aria-label="Главная навигация">
+          <button class="active" data-page="home"><span class="nav-icon">▦</span>Обзор</button>
+          <button data-page="check"><span class="nav-icon">✓</span>Проверка техплана</button>
+          <button data-page="assistant"><span class="nav-icon">✦</span>ИИ-помощник</button>
+          <button data-page="object"><span class="nav-icon">⌂</span>Карточка объекта</button>
+          <button data-page="cases"><span class="nav-icon">▤</span>Объекты и отчёты</button>
+        </nav>
+      </div>
+      <div>
+        <div class="nav-label">Справочник</div>
+        <nav class="nav">
+          <button data-page="rules"><span class="nav-icon">§</span>Нормативная база</button>
+        </nav>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="help-card"><b>Ваш помощник на каждый день</b><p>Загружайте документы, собирайте досье и ведите список замечаний по объектам.</p><button data-go="check">Начать проверку →</button></div>
+        <div class="sidebar-foot">Демо-версия · 2026<br>Данные остаются в этом окне браузера</div>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0">
+          <button class="btn btn-small mobile-menu" id="mobileMenu" aria-label="Открыть меню">☰</button>
+          <div class="crumb">Рабочее место <span style="padding:0 6px;color:var(--border)">/</span> <strong id="crumbCurrent">Обзор</strong></div>
+        </div>
+        <div class="top-actions"><div class="demo-pill"><span class="dot"></span> Локально + ИИ API</div><div class="avatar" title="Профиль инженера">КИ</div></div>
+      </header>
+      <div class="content">
+        <section class="page active" id="page-home">
+          <div class="page-head">
+            <div><div class="eyebrow">Кадастровые работы без хаоса</div><h1>Доброе утро, инженер 👋</h1><p class="page-intro">Единое пространство для предварительной проверки технических планов, сбора сведений об объектах и подготовки замечаний.</p></div>
+            <button class="btn btn-primary" data-go="check">＋ Проверить техплан</button>
+          </div>
+          <div class="grid stats">
+            <div class="card stat-card"><div class="stat-top"><span class="stat-label">Объекты в работе</span><span class="stat-icon">⌂</span></div><div class="stat-value" id="statObjects">04</div><div class="stat-foot">Карточки и рабочие материалы</div></div>
+            <div class="card stat-card"><div class="stat-top"><span class="stat-label">Проверки в прототипе</span><span class="stat-icon">✓</span></div><div class="stat-value" id="statChecks">12</div><div class="stat-foot"><span>Локальные правила</span> без отправки файлов</div></div>
+            <div class="card stat-card"><div class="stat-top"><span class="stat-label">Нужно проверить вручную</span><span class="stat-icon" style="background:var(--warning-bg);color:var(--warning)">!</span></div><div class="stat-value" id="statReview">03</div><div class="stat-foot">Пример замечаний в демо</div></div>
+            <div class="card stat-card"><div class="stat-top"><span class="stat-label">Файлы прикреплены</span><span class="stat-icon">⇧</span></div><div class="stat-value" id="statFiles">00</div><div class="stat-foot">В текущей сессии браузера</div></div>
+          </div>
+          <div class="grid dashboard-columns">
+            <div class="card">
+              <div class="card-head"><div><h2 class="card-title">Недавние объекты</h2><div class="card-subtitle">Сохранённые карточки на этом устройстве</div></div><button class="text-link" data-go="cases">Все объекты →</button></div>
+              <div class="object-list" id="recentObjects">
+                <div class="object-row"><div class="obj-icon">⌂</div><div><div class="obj-name">Жилой дом · пример</div><div class="obj-meta">Здание · кадастровый номер не подтверждён</div></div><span class="status warn"><span class="status-dot"></span>На проверке</span></div>
+                <div class="object-row"><div class="obj-icon">▤</div><div><div class="obj-name">Нежилое помещение · пример</div><div class="obj-meta">Помещение · документы собраны частично</div></div><span class="status neutral"><span class="status-dot"></span>Черновик</span></div>
+                <div class="object-row"><div class="obj-icon">⌖</div><div><div class="obj-name">Земельный участок · пример</div><div class="obj-meta">Связанный объект · требуется сверка сведений</div></div><span class="status ok"><span class="status-dot"></span>Карточка есть</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><div><h2 class="card-title">Быстрые действия</h2><div class="card-subtitle">С чего начать работу</div></div></div>
+              <div class="quick-actions">
+                <button class="quick-action" data-go="check"><span class="qa-icon">✓</span><span class="qa-copy"><b>Проверить техплан</b><span>XML, исходные сведения, список сигналов</span></span><span class="arrow">›</span></button>
+                <button class="quick-action" data-go="object"><span class="qa-icon">⌂</span><span class="qa-copy"><b>Собрать карточку объекта</b><span>Адрес, кадастровый номер, площадь, документы</span></span><span class="arrow">›</span></button>
+                <button class="quick-action" data-go="rules"><span class="qa-icon">§</span><span class="qa-copy"><b>Открыть нормативную базу</b><span>Основные требования и официальные источники</span></span><span class="arrow">›</span></button>
+              </div>
+            </div>
+          </div>
+          <div class="notice"><div class="notice-icon">ⓘ</div><p><strong>Важно о текущей версии.</strong> Сейчас это интерактивный прототип: основные действия работают в браузере, XML можно проверить на корректность структуры и признаки заполнения. ИИ-анализ документов, актуальная XSD-валидация по всем схемам Росреестра и получение данных из государственных систем пока не подключены.</p></div>
+        </section>
+
+        <section class="page" id="page-check">
+          <div class="page-head"><div><div class="eyebrow">Предварительный контроль</div><h1>Проверка техплана</h1><p class="page-intro">Прикрепите электронный техплан и исходные документы. Помощник выполнит базовую локальную проверку XML и сформирует перечень пунктов для ручной сверки.</p></div><button class="btn" id="loadExample">✦ Загрузить пример</button></div>
+          <div class="two-col">
+            <div class="card form-card">
+              <h2 class="section-head"><span class="section-number">01</span> Файлы для проверки</h2>
+              <div class="upload-box" id="uploadBox"><div class="upload-symbol">⇧</div><b>Перетащите файлы сюда</b><p>или выберите на компьютере<br>XML для локальной проверки; XML, PDF, DOCX, TXT, JSON для анализа ИИ · файлы ИИ будут переданы API провайдера</p><label for="fileInput" class="btn btn-soft btn-small">Выбрать файлы</label><input id="fileInput" type="file" multiple accept=".xml,.zip,.pdf,.docx,.txt,.json,.sig,.p7s"></div>
+              <div class="file-list" id="fileList"><div class="empty-state" style="padding:17px"><p>Пока нет прикреплённых файлов. Добавьте XML для локальной проверки или XML/PDF/DOCX/TXT/JSON для анализа ИИ.</p></div></div>
+              <div style="height:20px"></div>
+              <h2 class="section-head"><span class="section-number">02</span> Контекст проверки</h2>
+              <div class="field-grid">
+                <div class="field"><label for="checkType">Вид объекта</label><select id="checkType"><option>Здание</option><option>Помещение</option><option>Сооружение</option><option>Объект незавершённого строительства</option><option>Машино-место</option><option>Единый недвижимый комплекс</option></select></div>
+                <div class="field"><label for="checkReason">Основание подготовки</label><select id="checkReason"><option value="">Выберите основание</option><option>Создание объекта</option><option>Изменение сведений об объекте</option><option>Образование части объекта</option><option>Уточнение местоположения</option><option>Иное основание</option></select></div>
+                <div class="field full"><label for="checkCad">Кадастровый номер (если есть)</label><input id="checkCad" placeholder="Например, 77:01:0001001:1234"></div>
+                <div class="field full"><label for="checkNote">Что проверить особенно</label><textarea id="checkNote" placeholder="Например: сверить площадь с экспликацией, проверить связь с земельным участком…"></textarea><div class="field-hint">Заметка попадёт в итоговый отчёт. Это не заменяет обязательные разделы техплана.</div></div>
+              </div>
+              <div class="form-actions"><button class="btn btn-primary" id="runCheck">✓ Локальная проверка</button><button class="btn btn-soft" id="runAI">✦ Анализ ИИ</button><button class="btn" id="clearCheck">Очистить</button></div>
+            </div>
+            <div class="grid" style="gap:16px">
+              <div class="card mini-card"><h3>Что проверяется сейчас</h3><p>Доступны базовые проверки, не зависящие от серверного ИИ.</p><div class="check-list"><div class="check-item"><span class="check-square checked">✓</span><span>Корректность разбора XML (если приложен XML)</span></div><div class="check-item"><span class="check-square checked">✓</span><span>Поиск вероятного кадастрового номера в XML и форме</span></div><div class="check-item"><span class="check-square checked">✓</span><span>Наличие контекста: вид объекта и основание</span></div><div class="check-item"><span class="check-square">·</span><span>Проверка обязательных полей по актуальной XSD-схеме Росреестра</span></div><div class="check-item"><span class="check-square">·</span><span>Сверка графики, координат, площадей и исходных документов</span></div></div></div>
+              <div class="card mini-card"><h3>Перед началом</h3><p>Для полноценной проверки обычно нужен именно XML-пакет техплана, а также документы, на основании которых он подготовлен.</p><div class="notice" style="margin:0"><div class="notice-icon">🔒</div><p><strong>Локально.</strong> Локальная проверка не отправляет файлы. Кнопка анализа ИИ передаёт выбранные поддерживаемые файлы на сервер и провайдеру ИИ; не загружайте документы без разрешения и согласия на обработку.</p></div></div>
+            </div>
+          </div>
+          <div class="results" id="checkResults" hidden></div><div class="results" id="aiResults" hidden></div>
+        </section>
+
+        <section class="page" id="page-assistant">
+          <div class="page-head"><div><div class="eyebrow">Профессиональный помощник</div><h1>ИИ-помощник</h1><p class="page-intro">Задавайте вопросы по техническим планам, составу документов, кадастровым работам и замечаниям. Уточняйте факты и просите объяснить, что нужно проверить.</p></div><button class="btn" id="clearAssistantChat" type="button">Очистить диалог</button></div>
+          <div class="assistant-layout">
+            <div class="card assistant-card">
+              <div class="chat-header"><span class="chat-status"></span><div><div class="card-title">Кадастр.Помощник · ИИ</div><div class="card-subtitle">Вопросы и рабочие консультации</div></div></div>
+              <div class="chat-messages" id="chatMessages" aria-live="polite" aria-label="Диалог с ИИ-помощником"><div class="chat-message assistant"><div class="chat-role">ИИ-помощник</div><div class="chat-bubble">Здравствуйте! Я помощник кадастрового инженера. Могу помочь составить список проверок для технического плана, объяснить возможные замечания, подготовить вопросы заказчику или разобрать сведения из карточки объекта.
+
+Начните с конкретного вопроса. Для анализа содержимого файлов откройте «Проверка техплана» и нажмите «Анализ ИИ». Мои ответы требуют проверки по актуальным нормативным документам.</div></div></div>
+              <div class="chat-suggestions"><button type="button" data-chat-prompt="Составь чек-лист предварительной проверки технического плана здания.">Чек-лист проверки техплана</button><button type="button" data-chat-prompt="Какие исходные документы нужно запросить у заказчика? Уточни, что зависит от вида кадастровых работ.">Документы от заказчика</button><button type="button" data-chat-prompt="Как правильно оформить перечень замечаний к техническому плану, чтобы инженер мог их проверить?">Как оформить замечания</button><button type="button" data-chat-prompt="Какие сведения из XML можно сопоставить с карточкой объекта и что требует ручной проверки?">Сверка сведений объекта</button></div>
+              <form class="chat-compose" id="assistantForm"><label for="assistantInput" class="field-hint">Ваш вопрос</label><textarea id="assistantInput" placeholder="Например: помоги проверить состав документов для техплана помещения…" maxlength="6000" required></textarea><div class="chat-compose-footer"><span class="field-hint">Не отправляйте лишние персональные данные.</span><button class="btn btn-primary" id="sendAssistant" type="submit">Отправить ↗</button></div></form>
+            </div>
+            <div class="grid" style="gap:16px">
+              <div class="card mini-card"><h3>Чем поможет ассистент</h3><div class="check-list"><div class="check-item"><span class="check-square checked">✓</span><span>Подготовить предварительный чек-лист для типа объекта и основания работ</span></div><div class="check-item"><span class="check-square checked">✓</span><span>Объяснить замечание понятным языком и предложить следующий шаг</span></div><div class="check-item"><span class="check-square checked">✓</span><span>Составить список недостающих документов и вопросов заказчику</span></div><div class="check-item"><span class="check-square checked">✓</span><span>Помочь систематизировать сведения и подготовить внутренний отчёт</span></div></div></div>
+              <div class="card mini-card"><h3>Подключение ИИ</h3><p>Для настоящих ответов нужен серверный маршрут <code>/api/chat</code> и секретный ключ провайдера, сохранённый в настройках хостинга. Не вставляйте API-ключ в HTML или публичный GitHub.</p><div class="notice" style="margin:0"><div class="notice-icon">ⓘ</div><p><strong>Профессиональная проверка обязательна.</strong> Ассистент не подтверждает соответствие техплана законодательству, не заменяет официальную XSD-валидацию и не получает сведения ЕГРН без отдельной интеграции.</p></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" id="page-object">
+          <div class="page-head"><div><div class="eyebrow">Досье объекта недвижимости</div><h1>Карточка объекта</h1><p class="page-intro">Соберите в одном месте идентификаторы, характеристики, документы и открытые вопросы. Заполненные поля можно выгрузить в краткий отчёт.</p></div><div class="object-actions"><button class="btn" id="exportDossier">↓ Скачать досье</button><button class="btn btn-primary" id="saveObject">Сохранить карточку</button></div></div>
+          <div class="two-col">
+            <div class="card form-card">
+              <h2 class="section-head"><span class="section-number">01</span> Основные сведения</h2>
+              <div class="field-grid">
+                <div class="field full"><label for="objName">Рабочее название объекта</label><input id="objName" placeholder="Например: Жилой дом, участок 15"></div>
+                <div class="field"><label for="objType">Вид объекта</label><select id="objType"><option>Здание</option><option>Помещение</option><option>Сооружение</option><option>Земельный участок</option><option>ОНС</option><option>Машино-место</option><option>Единый недвижимый комплекс</option></select></div>
+                <div class="field"><label for="objCad">Кадастровый номер</label><input id="objCad" placeholder="00:00:0000000:0000"></div>
+                <div class="field full"><label for="objAddress">Адрес / местоположение</label><input id="objAddress" placeholder="Субъект, населённый пункт, улица, дом"></div>
+                <div class="field"><label for="objArea">Площадь, м²</label><input id="objArea" type="number" min="0" step="0.01" placeholder="Например, 126.4"></div>
+                <div class="field"><label for="objFloors">Количество этажей / уровень</label><input id="objFloors" placeholder="При наличии сведений"></div>
+                <div class="field"><label for="objPurpose">Назначение</label><input id="objPurpose" placeholder="Жилое / нежилое / иное"></div>
+                <div class="field"><label for="objStatus">Статус проверки</label><select id="objStatus"><option>Черновик</option><option>Собираются документы</option><option>На ручной проверке</option><option>Готово к внутренней сверке</option></select></div>
+              </div>
+              <div style="height:23px"></div>
+              <h2 class="section-head"><span class="section-number">02</span> Документы и связи</h2>
+              <div class="field-grid">
+                <div class="field full"><label for="objDocs">Исходные документы</label><textarea id="objDocs" placeholder="Например: декларация, проектная документация, разрешение на ввод, выписка ЕГРН…"></textarea><div class="field-hint">Указывайте реквизиты и фактически имеющиеся документы; применимость зависит от вида работ и объекта.</div></div>
+                <div class="field full"><label for="objLinks">Связанные объекты / земельный участок</label><textarea id="objLinks" placeholder="Кадастровый номер участка, связанное здание/помещение, примечания…"></textarea></div>
+                <div class="field full"><label for="objQuestions">Открытые вопросы</label><textarea id="objQuestions" placeholder="Что нужно подтвердить или запросить у заказчика? "></textarea></div>
+              </div>
+              <div class="form-actions"><button class="btn btn-primary" id="saveObject2">Сохранить карточку</button><button class="btn" id="resetObject">Очистить поля</button></div>
+            </div>
+            <div class="grid" style="gap:16px">
+              <div class="card mini-card"><h3>Сводка досье</h3><p>Формируется из данных, внесённых в эту карточку.</p><div class="kv-list" id="dossierPreview"><div class="empty-state" style="padding:14px"><p>Заполните поля слева, затем нажмите «Сохранить карточку».</p></div></div></div>
+              <div class="card mini-card"><h3>Откуда брать сведения</h3><p>Используйте официальные документы заказчика и проверяйте ключевые сведения по актуальным государственным источникам.</p><div class="check-list"><div class="check-item"><span class="check-square checked">1</span><span>Выписка ЕГРН и документы-основания</span></div><div class="check-item"><span class="check-square checked">2</span><span>Исходные документы на создание / изменение объекта</span></div><div class="check-item"><span class="check-square checked">3</span><span>XML техплана и актуальность применимой схемы</span></div><div class="check-item"><span class="check-square">4</span><span>Сверка с официальными ресурсами и местными ограничениями</span></div></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" id="page-cases">
+          <div class="page-head"><div><div class="eyebrow">Рабочий журнал</div><h1>Объекты и отчёты</h1><p class="page-intro">Список карточек, заведённых в текущем прототипе, и недавних результатов предварительной проверки.</p></div><button class="btn btn-primary" data-go="object">＋ Новая карточка</button></div>
+          <div class="card"><div class="card-head"><div><h2 class="card-title">Объекты</h2><div class="card-subtitle">Сохранённые карточки</div></div><div class="search-row"><div class="search"><span>⌕</span><input id="caseSearch" placeholder="Поиск по объекту или номеру"></div></div></div><div class="object-list" id="caseList"><div class="object-row"><div class="obj-icon">⌂</div><div><div class="obj-name">Жилой дом · пример</div><div class="obj-meta">Здание · демонстрационная запись</div></div><span class="status warn">Пример</span></div><div class="object-row"><div class="obj-icon">▤</div><div><div class="obj-name">Нежилое помещение · пример</div><div class="obj-meta">Помещение · демонстрационная запись</div></div><span class="status neutral">Пример</span></div><div class="object-row"><div class="obj-icon">⌖</div><div><div class="obj-name">Земельный участок · пример</div><div class="obj-meta">Участок · демонстрационная запись</div></div><span class="status ok">Пример</span></div></div></div>
+          <div class="notice"><div class="notice-icon">ⓘ</div><p>Карточки хранятся локально в браузере на этом устройстве. Используйте резервное копирование. Для общей работы команды нужен отдельный защищённый сервер.</p></div>
+        </section>
+
+        <section class="page" id="page-rules">
+          <div class="page-head"><div><div class="eyebrow">Источники для инженера</div><h1>Нормативная база</h1><p class="page-intro">Ссылки на основные документы, которые стоит учитывать при настройке проверок. Перед применением сверяйте актуальную редакцию и дату вступления изменений в силу.</p></div></div>
+          <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:17px" id="rulesGrid">
+            <div class="card doc-card"><h3>Требования к техническому плану</h3><p>Приказ Росреестра от 15.03.2022 № П/0082 — форма техплана, требования к подготовке и состав содержащихся в нём сведений.</p><span class="pill-note">Редакция с изменениями 2025 года; изменения действуют с 01.02.2026</span><div class="doc-link"><div class="doc-symbol">LAW</div><div><b>Текст документа и приложения</b><p>Перед проверкой сверяйте конкретный пункт и вид объекта.</p><a href="https://www.consultant.ru/document/cons_doc_LAW_413702/" target="_blank" rel="noopener">Открыть документ ↗</a></div></div></div>
+            <div class="card doc-card"><h3>Закон о государственной регистрации недвижимости</h3><p>Федеральный закон от 13.07.2015 № 218-ФЗ — правовые основы кадастрового учёта и регистрации прав.</p><div class="doc-link"><div class="doc-symbol">218-ФЗ</div><div><b>Текст закона</b><p>Используйте актуальную редакцию официального текста.</p><a href="https://www.consultant.ru/document/cons_doc_LAW_182661/" target="_blank" rel="noopener">Открыть документ ↗</a></div></div></div>
+            <div class="card doc-card"><h3>Официальное опубликование правовых актов</h3><p>Источник для поиска текстов нормативных актов и опубликованных изменений.</p><div class="doc-link"><div class="doc-symbol">OFF</div><div><b>Официальный портал</b><p>Поиск по номеру и дате документа.</p><a href="https://publication.pravo.gov.ru/" target="_blank" rel="noopener">Перейти на портал ↗</a></div></div></div>
+            <div class="card doc-card"><h3>Росреестр</h3><p>Проверяйте официальные публикации ведомства, в том числе информацию об актуальных XML-схемах и сервисах.</p><div class="doc-link"><div class="doc-symbol">РР</div><div><b>Официальный сайт</b><p>Текущие версии XML-схем должны проверяться отдельно.</p><a href="https://rosreestr.gov.ru/" target="_blank" rel="noopener">Перейти на сайт ↗</a></div></div></div>
+          </div>
+          <div class="notice"><div class="notice-icon">⚠</div><p><strong>Ограничение.</strong> Этот раздел — стартовый список источников, а не исчерпывающая правовая база. Прототип не следит за изменениями автоматически, не подтягивает текущие XSD-схемы и не определяет применимость каждого требования для конкретной кадастровой работы.</p></div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function () {
+  const pageNames = {home:'Обзор', check:'Проверка техплана', assistant:'ИИ-помощник', object:'Карточка объекта', cases:'Объекты и отчёты', rules:'Нормативная база'};
+  const pages = Array.from(document.querySelectorAll('.page'));
+  const navButtons = Array.from(document.querySelectorAll('[data-page]'));
+  const toast = document.getElementById('toast');
+  let toastTimer = null;
+  let selectedFiles = [];
+  let checkResultsData = [];
+  let savedDossier = null;
+  let assistantHistory = [];
+
+  function notify(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+  function go(page) {
+    pages.forEach(p => p.classList.toggle('active', p.id === 'page-' + page));
+    navButtons.forEach(b => b.classList.toggle('active', b.dataset.page === page));
+    document.getElementById('crumbCurrent').textContent = pageNames[page] || 'Обзор';
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  navButtons.forEach(b => b.addEventListener('click', () => go(b.dataset.page)));
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+  document.getElementById('mobileMenu').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('mobile-open'));
+
+  function addAssistantMessage(role, content) {
+    const list = document.getElementById('chatMessages');
+    const item = document.createElement('div');
+    item.className = 'chat-message ' + (role === 'user' ? 'user' : 'assistant');
+    const roleLabel = role === 'user' ? 'Вы' : 'ИИ-помощник';
+    item.innerHTML = '<div class="chat-role">' + roleLabel + '</div><div class="chat-bubble">' + esc(content) + '</div>';
+    list.appendChild(item);
+    list.scrollTop = list.scrollHeight;
+  }
+  async function submitAssistantQuestion(question) {
+    const text = String(question || '').trim();
+    if (!text) return;
+    if (text.length > 6000) { notify('Сократите вопрос до 6000 символов.'); return; }
+    const sendButton = document.getElementById('sendAssistant');
+    const input = document.getElementById('assistantInput');
+    addAssistantMessage('user', text);
+    assistantHistory.push({role:'user', content:text});
+    input.value = '';
+    sendButton.disabled = true;
+    sendButton.textContent = 'Отвечаю…';
+    const pending = document.createElement('div');
+    pending.className = 'chat-message assistant';
+    pending.innerHTML = '<div class="chat-role">ИИ-помощник</div><div class="chat-bubble">Подготавливаю ответ…</div>';
+    document.getElementById('chatMessages').appendChild(pending);
+    try {
+      let accessCode = sessionStorage.getItem('kadastr-ai-access-code') || '';
+      if (!accessCode) {
+        accessCode = window.prompt('Введите пароль доступа к ИИ, заданный владельцем сайта в настройках хостинга.');
+        if (!accessCode) throw new Error('Для доступа к ИИ нужен пароль.');
+      }
+      const dossier = {};
+      if (typeof dossierIds !== 'undefined') dossierIds.forEach(id => { const field = document.getElementById(id); if (field && field.value.trim()) dossier[id] = field.value.trim(); });
+      const response = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({accessCode, message:text, history:assistantHistory.slice(-12), context:{objectType:document.getElementById('checkType').value, basis:document.getElementById('checkReason').value, cadastralNumber:document.getElementById('checkCad').value.trim(), note:document.getElementById('checkNote').value.trim(), objectDossier:dossier, previousAnalysis: typeof aiResultData !== 'undefined' && aiResultData ? aiResultData.summary : ''}})});
+      const payload = await response.json().catch(() => ({error:'Сервер вернул некорректный ответ.'}));
+      if (response.status === 401) { sessionStorage.removeItem('kadastr-ai-access-code'); throw new Error(payload.error || 'Неверный пароль доступа.'); }
+      if (!response.ok) throw new Error(payload.error || ('Сервер ответил с кодом ' + response.status));
+      const answer = payload.reply || payload.answer || payload.output_text;
+      if (!answer || typeof answer !== 'string') throw new Error('Сервер не вернул текст ответа. Проверьте контракт /api/chat.');
+      sessionStorage.setItem('kadastr-ai-access-code', accessCode);
+      pending.remove();
+      assistantHistory.push({role:'assistant', content:answer});
+      addAssistantMessage('assistant', answer);
+    } catch (error) {
+      pending.remove();
+      const message = error && error.message ? error.message : 'Неизвестная ошибка';
+      const help = message.includes('Failed to fetch') || message.includes('404')
+        ? message + '\n\nПохоже, маршрут /api/chat ещё не развёрнут. Для GitHub Pages одного HTML недостаточно: добавьте серверную функцию /api/chat и настройте ключ ИИ на сервере (например, в Vercel).'
+        : message;
+      addAssistantMessage('assistant', help);
+    } finally {
+      sendButton.disabled = false;
+      sendButton.textContent = 'Отправить ↗';
+      input.focus();
+    }
+  }
+  document.getElementById('assistantForm').addEventListener('submit', event => { event.preventDefault(); submitAssistantQuestion(document.getElementById('assistantInput').value); });
+  document.querySelectorAll('[data-chat-prompt]').forEach(button => button.addEventListener('click', () => { document.getElementById('assistantInput').value = button.dataset.chatPrompt; document.getElementById('assistantInput').focus(); }));
+  document.getElementById('clearAssistantChat').addEventListener('click', () => {
+    assistantHistory = [];
+    document.getElementById('chatMessages').innerHTML = '';
+    addAssistantMessage('assistant', 'Диалог очищен. Задайте новый вопрос по кадастровым работам.');
+    notify('Диалог очищен.');
+  });
+
+  const fileInput = document.getElementById('fileInput');
+  const fileList = document.getElementById('fileList');
+  const uploadBox = document.getElementById('uploadBox');
+  fileInput.addEventListener('change', e => { addFiles(Array.from(e.target.files || [])); fileInput.value = ''; });
+  uploadBox.addEventListener('dragover', e => { e.preventDefault(); uploadBox.classList.add('dragging'); });
+  uploadBox.addEventListener('dragleave', () => uploadBox.classList.remove('dragging'));
+  uploadBox.addEventListener('drop', e => { e.preventDefault(); uploadBox.classList.remove('dragging'); addFiles(Array.from(e.dataTransfer.files || [])); });
+  function addFiles(files) {
+    if (!files.length) return;
+    const allowed = /\.(xml|zip|pdf|docx|txt|json|sig|p7s)$/i;
+    const good = files.filter(f => allowed.test(f.name));
+    const skipped = files.length - good.length;
+    good.forEach(f => {
+      if (!selectedFiles.some(old => old.name === f.name && old.size === f.size && old.lastModified === f.lastModified)) selectedFiles.push(f);
+    });
+    renderFiles();
+    updateStats();
+    if (skipped) notify('Некоторые файлы пропущены: неподдерживаемое расширение.');
+    else notify(good.length ? 'Файлы добавлены в текущую сессию.' : 'Выберите XML, ZIP, PDF, DOCX или TXT.');
+  }
+  function sizeLabel(size) { return size < 1024 ? size + ' Б' : size < 1048576 ? (size/1024).toFixed(1) + ' КБ' : (size/1048576).toFixed(1) + ' МБ'; }
+  function renderFiles() {
+    if (!selectedFiles.length) {
+      fileList.innerHTML = '<div class="empty-state" style="padding:17px"><p>Пока нет прикреплённых файлов. Добавьте XML для локальной проверки или XML/PDF/DOCX/TXT/JSON для анализа ИИ.</p></div>';
+      return;
+    }
+    fileList.innerHTML = selectedFiles.map((f,i) => {
+      const ext = (f.name.split('.').pop() || 'FILE').toUpperCase().slice(0,4);
+      return '<div class="file-item"><div class="file-badge">' + esc(ext) + '</div><div class="file-info"><b title="' + esc(f.name) + '">' + esc(f.name) + '</b><span>' + sizeLabel(f.size) + ' · ' + (ext === 'XML' || ext === 'TXT' || ext === 'JSON' ? 'доступен локальный разбор' : 'прикреплён, содержимое в демо не извлекается') + '</span></div><button type="button" class="file-remove" data-remove-file="' + i + '" aria-label="Удалить файл">×</button></div>';
+    }).join('');
+    fileList.querySelectorAll('[data-remove-file]').forEach(b => b.addEventListener('click', () => { selectedFiles.splice(Number(b.dataset.removeFile),1); renderFiles(); updateStats(); }));
+  }
+  function esc(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function updateStats() {
+    document.getElementById('statFiles').textContent = String(selectedFiles.length).padStart(2,'0');
+    if (typeof appStore !== 'undefined') {
+      document.getElementById('statObjects').textContent = String(appStore.cases.length).padStart(2,'0');
+      document.getElementById('statChecks').textContent = String(appStore.checks).padStart(2,'0');
+      document.getElementById('statReview').textContent = String(appStore.review).padStart(2,'0');
+    }
+  }
+
+  document.getElementById('loadExample').addEventListener('click', () => {
+    const demo = new File(['<?xml version="1.0" encoding="UTF-8"?>\n<TechnicalPlan><ObjectType>Building</ObjectType><CadastralNumber>77:01:0001001:1234</CadastralNumber><Address>г. Москва, примерный адрес</Address><Area>126.4</Area><Engineer>Пример Кадастровый Инженер</Engineer><Documents><Document>Основание (пример)</Document></Documents></TechnicalPlan>'], 'demo_technical_plan.xml', {type:'application/xml', lastModified:Date.now()});
+    addFiles([demo]);
+    document.getElementById('checkType').value = 'Здание';
+    document.getElementById('checkReason').value = 'Создание объекта';
+    document.getElementById('checkCad').value = '77:01:0001001:1234';
+    document.getElementById('checkNote').value = 'Демонстрация базовой локальной проверки; сверить содержимое с фактическими документами.';
+    notify('Примерный XML загружен. Это учебные, не реальные сведения.');
+  });
+
+  function addFinding(kind, title, desc, tag) { return {kind,title,desc,tag}; }
+  async function analyzeFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['xml','txt','json'].includes(ext)) return {file:file.name, status:'unread', text:''};
+    try {
+      const text = await file.text();
+      if (ext === 'xml') {
+        const parsed = new DOMParser().parseFromString(text, 'application/xml');
+        const parseError = parsed.querySelector('parsererror');
+        return {file:file.name, status:parseError ? 'invalid' : 'valid', text, root:parsed.documentElement ? parsed.documentElement.nodeName : ''};
+      }
+      if (ext === 'json') {
+        try { JSON.parse(text); return {file:file.name,status:'valid',text}; }
+        catch (e) { return {file:file.name,status:'invalid',text}; }
+      }
+      return {file:file.name,status:'text',text};
+    } catch (e) { return {file:file.name,status:'unreadable',text:''}; }
+  }
+  function hasCadNumber(text) { return /\b\d{2}:\d{2}:\d{5,7}:\d+\b/.test(text || ''); }
+  function findArea(text) { return /<[^>]*(?:area|площад)[^>]*>\s*[^<\s][^<]*</i.test(text || '') || /\bплощад[а-яё]*\s*[:=]\s*\d/i.test(text || ''); }
+  function hasAddress(text) { return /<[^>]*(?:address|адрес|location|местополож)[^>]*>\s*[^<\s][^<]*</i.test(text || '') || /\bадрес\s*[:=]\s*\S/i.test(text || ''); }
+  function hasEngineer(text) { return /<[^>]*(?:engineer|кадастровыйинженер|инженер)[^>]*>\s*[^<\s][^<]*</i.test((text || '').replace(/\s+/g,'')) || /кадастровый\s+инженер/i.test(text || ''); }
+
+  document.getElementById('runCheck').addEventListener('click', async () => {
+    const results = [];
+    const type = document.getElementById('checkType').value;
+    const reason = document.getElementById('checkReason').value;
+    const cad = document.getElementById('checkCad').value.trim();
+    const note = document.getElementById('checkNote').value.trim();
+    const files = await Promise.all(selectedFiles.map(analyzeFile));
+    const xmls = files.filter(f => f.file.toLowerCase().endsWith('.xml'));
+    const parsableText = files.filter(f => ['valid','text'].includes(f.status)).map(f=>f.text).join('\n');
+    if (!selectedFiles.length) {
+      results.push(addFinding('warn','Файлы не приложены','Пока проверяется только заполненный контекст. Прикрепите XML техплана для проверки его синтаксиса и ориентировочных признаков заполнения.','Файл'));
+    }
+    if (xmls.length) {
+      const invalid = xmls.filter(f=>f.status === 'invalid');
+      const valid = xmls.filter(f=>f.status === 'valid');
+      if (invalid.length) results.push(addFinding('bad','XML не удалось разобрать', 'Проверьте синтаксис XML в файле: ' + invalid.map(f=>f.file).join(', ') + '. Причина не извлекается в этом кратком прототипе.','Структура XML'));
+      else results.push(addFinding('good','XML синтаксически корректен','Файл читается стандартным XML-парсером браузера. Это не подтверждает соответствие актуальной XSD-схеме Росреестра.','Автопроверка'));
+      if (valid.length && !(hasCadNumber(parsableText) || hasCadNumber(cad))) results.push(addFinding('warn','Не найден вероятный кадастровый номер','В просмотренном тексте и поле формы не найден шаблон вида 00:00:0000000:000. Для нового объекта номер может отсутствовать — оцените применимость вручную.','Содержимое'));
+      else if (valid.length) results.push(addFinding('good','Найдено значение формата кадастрового номера','Совпадение с типовым форматом найдено. Существование и принадлежность номера объекту не проверялись по ЕГРН.','Содержимое'));
+      if (valid.length && !findArea(parsableText)) results.push(addFinding('warn','Не найден явный маркер площади','По простому поиску по названиям полей площадь не обнаружена. Реальное имя и обязательность поля зависят от XML-схемы и вида объекта.','Содержимое'));
+      else if (valid.length) results.push(addFinding('good','Найден вероятный маркер площади','Найдено поле, похожее на площадь. Значение и согласованность единиц измерения не проверялись.','Содержимое'));
+      if (valid.length && !hasAddress(parsableText)) results.push(addFinding('warn','Не найден явный маркер адреса','Проверьте блок местоположения объекта; адресное описание не всегда представляется простым текстовым полем.','Содержимое'));
+      if (valid.length && !hasEngineer(parsableText)) results.push(addFinding('warn','Данные инженера не распознаны простым поиском','Сверьте сведения о кадастровом инженере в техплане и данные подписи/сертификата отдельно.','Содержимое'));
+    } else if (selectedFiles.length) {
+      results.push(addFinding('warn','XML техплана среди вложений не найден','Файлы приложены, но в текущем прототипе PDF, DOCX и ZIP не распаковываются и не распознаются. Для структурной проверки выберите XML.','Файлы'));
+    }
+    if (!type) results.push(addFinding('warn','Не выбран вид объекта','Выберите вид объекта, чтобы использовать подходящий проверочный сценарий.','Контекст'));
+    else results.push(addFinding('good','Вид объекта указан','Выбран сценарий: ' + type + '. Обязательность разделов пока не проверяется по конкретному случаю.','Контекст'));
+    if (!reason) results.push(addFinding('warn','Не указано основание подготовки','Выберите причину подготовки техплана и проверьте, что она совпадает с исходными документами.','Контекст'));
+    else results.push(addFinding('good','Основание подготовки указано','В контексте выбран вариант: «' + reason + '». Проверьте юридическую применимость основания.','Контекст'));
+    if (note) results.push(addFinding('warn','Заметка инженера добавлена', 'В отчёт включено примечание: ' + note,'Ручная проверка'));
+    results.push(addFinding('warn','Нормативная и предметная сверка не выполнена','Прототип не проверял обязательные разделы, координаты, графику, полномочия/подпись, актуальную XSD, состав приложений и соответствие ЕГРН. Эти пункты требуют отдельной проверки.','Инженер'));
+    checkResultsData = results;
+    renderResults(results, selectedFiles.map(f=>f.name));
+    if (typeof appStore !== 'undefined') { appStore.checks += 1; appStore.review = results.filter(r=>r.kind==='warn'||r.kind==='bad').length; persistAppStore(); }
+    updateStats();
+    notify('Предварительная проверка завершена. Проверьте список сигналов ниже.');
+  });
+  function renderResults(results, files) {
+    const root = document.getElementById('checkResults');
+    const errorCount = results.filter(r=>r.kind==='bad').length;
+    const warnCount = results.filter(r=>r.kind==='warn').length;
+    const goodCount = results.filter(r=>r.kind==='good').length;
+    root.hidden = false;
+    root.innerHTML = '<div class="results-head"><div><div class="results-title">Результаты предварительной проверки</div><div class="results-caption">Файлы: ' + esc(files.length ? files.join(', ') : 'не приложены') + '<br>Проверено локально в браузере · ' + new Date().toLocaleString('ru-RU') + '</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="status ok">' + goodCount + ' сигналов ОК</span><span class="status warn">' + warnCount + ' к сверке</span>' + (errorCount ? '<span class="status error">' + errorCount + ' ошибок</span>' : '') + '</div></div>' +
+      '<div class="card">' + results.map(r => '<div class="finding"><div class="finding-icon ' + (r.kind==='good'?'good':r.kind==='bad'?'bad':'warn') + '">' + (r.kind==='good'?'✓':r.kind==='bad'?'×':'!') + '</div><div><b>' + esc(r.title) + '</b><p>' + esc(r.desc) + '</p></div><span class="tag">' + esc(r.tag) + '</span></div>').join('') + '<div class="disclaimer">Результат носит справочный характер. «ОК» означает только прохождение указанной локальной проверки, а не соответствие техплана требованиям законодательства или пригодность для подачи в Росреестр.</div></div>' +
+      '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary" id="downloadCheckReport">↓ Скачать отчёт проверки</button><button class="btn" id="copyCheckSummary">Копировать сводку</button></div>';
+    document.getElementById('downloadCheckReport').addEventListener('click', downloadCheckReport);
+    document.getElementById('copyCheckSummary').addEventListener('click', async () => {
+      const txt = checkResultsData.map((r,i)=>(i+1)+'. ['+(r.kind==='good'?'ОК':r.kind==='bad'?'ОШИБКА':'ПРОВЕРИТЬ')+'] '+r.title+'\n'+r.desc).join('\n\n');
+      try { await navigator.clipboard.writeText(txt); notify('Сводка скопирована.'); } catch(e) { downloadText('Сводка_проверки.txt',txt); notify('Скачана сводка проверки (буфер недоступен).'); }
+    });
+    root.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function downloadText(filename, text) {
+    const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  function downloadCheckReport() {
+    const lines = ['КАДАСТР.ПОМОЩНИК — ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА','Дата: '+new Date().toLocaleString('ru-RU'),'Вид объекта: '+document.getElementById('checkType').value,'Основание: '+(document.getElementById('checkReason').value || 'не указано'),'Кадастровый номер из формы: '+(document.getElementById('checkCad').value || 'не указан'),'Файлы: '+(selectedFiles.map(f=>f.name).join(', ') || 'не приложены'),'','РЕЗУЛЬТАТЫ:'];
+    checkResultsData.forEach((r,i)=>lines.push((i+1)+'. ['+(r.kind==='good'?'ОК':r.kind==='bad'?'ОШИБКА':'ПРОВЕРИТЬ')+'] '+r.title+'\n'+r.desc+' ('+r.tag+')',''));
+    lines.push('ВНИМАНИЕ: прототип не выполняет официальную XSD-валидацию, не обращается к ЕГРН/государственным системам и не является заключением о соответствии техплана.');
+    downloadText('Отчёт_предварительной_проверки.txt',lines.join('\n'));
+  }
+  document.getElementById('clearCheck').addEventListener('click', () => {
+    selectedFiles = []; renderFiles(); updateStats(); document.getElementById('checkCad').value=''; document.getElementById('checkReason').value=''; document.getElementById('checkNote').value=''; document.getElementById('checkResults').hidden=true; notify('Форма проверки очищена.');
+  });
+
+  const dossierIds = ['objName','objType','objCad','objAddress','objArea','objFloors','objPurpose','objStatus','objDocs','objLinks','objQuestions'];
+  const dossierLabels = {'objName':'Название','objType':'Вид объекта','objCad':'Кадастровый номер','objAddress':'Адрес / местоположение','objArea':'Площадь, м²','objFloors':'Этажность / уровень','objPurpose':'Назначение','objStatus':'Статус','objDocs':'Исходные документы','objLinks':'Связанные объекты','objQuestions':'Открытые вопросы'};
+  function getDossier() { const obj={}; dossierIds.forEach(id=>obj[id]=document.getElementById(id).value.trim()); obj.savedAt = new Date().toLocaleString('ru-RU'); return obj; }
+  function renderDossierPreview(data) {
+    const values = dossierIds.filter(id=>data[id]).map(id=>'<div class="kv-row"><div class="kv-key">'+esc(dossierLabels[id])+'</div><div class="kv-value">'+esc(data[id]).replace(/\n/g,'<br>')+'</div></div>');
+    document.getElementById('dossierPreview').innerHTML = values.length ? values.join('')+'<div class="field-hint" style="margin-top:12px">Обновлено: '+esc(data.savedAt || 'ещё не сохранено')+'</div>' : '<div class="empty-state" style="padding:14px"><p>Поля пока не заполнены.</p></div>';
+  }
+
+  let appStore = {cases: [], checks: 0, review: 0};
+  let selectedCaseId = null;
+  const appStorageKey = 'kadastr-pomoshnik-data-v1';
+  try {
+    const stored = JSON.parse(localStorage.getItem(appStorageKey) || 'null');
+    if (stored && Array.isArray(stored.cases)) {
+      appStore.cases = stored.cases.filter(item => item && typeof item.id === 'string' && item.data && typeof item.data === 'object');
+      appStore.checks = Math.max(0, Number(stored.checks) || 0);
+      appStore.review = Math.max(0, Number(stored.review) || 0);
+    }
+  } catch (e) { console.warn('Не удалось загрузить локальные данные', e); }
+
+  function persistAppStore() {
+    try { localStorage.setItem(appStorageKey, JSON.stringify(appStore)); }
+    catch (e) { notify('Не удалось сохранить данные браузера. Скачайте резервную копию.'); }
+  }
+
+  function caseRowMarkup(record, compact) {
+    const data = record.data || {};
+    const name = data.objName || 'Объект без названия';
+    const meta = [data.objType, data.objCad || 'кадастровый номер не указан', data.objAddress].filter(Boolean).join(' · ');
+    const buttons = compact
+      ? '<button class="btn btn-small" type="button" data-open-case="' + esc(record.id) + '">Открыть</button>'
+      : '<div class="object-actions"><button class="btn btn-small" type="button" data-open-case="' + esc(record.id) + '">Открыть</button><button class="btn btn-small" type="button" data-delete-case="' + esc(record.id) + '">Удалить</button></div>';
+    return '<div class="object-row" style="grid-template-columns:37px minmax(0,1fr) auto" data-saved-case="' + esc(record.id) + '"><div class="obj-icon">⌂</div><div><div class="obj-name">' + esc(name) + '</div><div class="obj-meta">' + esc(meta || 'Карточка объекта') + '<br>Сохранено: ' + esc(data.savedAt || 'дата не указана') + '</div></div>' + buttons + '</div>';
+  }
+
+  function renderCases() {
+    const recent = document.getElementById('recentObjects');
+    const list = document.getElementById('caseList');
+    const newest = appStore.cases.slice().reverse();
+    recent.innerHTML = newest.length
+      ? newest.slice(0, 5).map(record => caseRowMarkup(record, true)).join('')
+      : '<div class="empty-state"><div class="big">⌂</div><b>Пока нет сохранённых объектов</b><p>Заполните карточку и нажмите «Сохранить карточку».</p></div>';
+    list.innerHTML = newest.length
+      ? newest.map(record => caseRowMarkup(record, false)).join('')
+      : '<div class="empty-state"><div class="big">▤</div><b>Список пока пуст</b><p>Создайте карточку. Она сохранится в этом браузере.</p></div>';
+    applyCaseSearch();
+  }
+  function applyCaseSearch() {
+    const query = (document.getElementById('caseSearch').value || '').trim().toLowerCase();
+    Array.from(document.getElementById('caseList').querySelectorAll('[data-saved-case]')).forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(query) ? 'grid' : 'none';
+    });
+  }
+  function openSavedCase(id) {
+    const record = appStore.cases.find(item => item.id === id);
+    if (!record) return;
+    selectedCaseId = record.id;
+    savedDossier = record.data;
+    dossierIds.forEach(key => { const field = document.getElementById(key); field.value = record.data[key] == null ? '' : record.data[key]; });
+    renderDossierPreview(record.data);
+    go('object');
+    notify('Открыта сохранённая карточка. Сохраните её после правок.');
+  }
+  function saveObject() {
+    const data = getDossier();
+    if (!data.objName && !data.objCad && !data.objAddress) {
+      notify('Заполните хотя бы название, кадастровый номер или адрес объекта.');
+      return;
+    }
+    if (selectedCaseId && appStore.cases.some(item => item.id === selectedCaseId)) {
+      appStore.cases = appStore.cases.map(item => item.id === selectedCaseId ? {id: selectedCaseId, data} : item);
+    } else {
+      selectedCaseId = 'case-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+      appStore.cases.push({id: selectedCaseId, data});
+    }
+    savedDossier = data;
+    persistAppStore(); renderDossierPreview(data); renderCases(); updateStats();
+    notify('Карточка сохранена в этом браузере.');
+  }
+  function deleteSavedCase(id) {
+    if (!confirm('Удалить эту карточку из локального списка?')) return;
+    appStore.cases = appStore.cases.filter(item => item.id !== id);
+    if (selectedCaseId === id) { selectedCaseId = null; savedDossier = null; }
+    persistAppStore(); renderCases(); updateStats(); notify('Карточка удалена.');
+  }
+  document.getElementById('caseList').addEventListener('click', event => {
+    const openButton = event.target.closest('[data-open-case]');
+    const deleteButton = event.target.closest('[data-delete-case]');
+    if (openButton) openSavedCase(openButton.dataset.openCase);
+    if (deleteButton) deleteSavedCase(deleteButton.dataset.deleteCase);
+  });
+  document.getElementById('recentObjects').addEventListener('click', event => {
+    const button = event.target.closest('[data-open-case]'); if (button) openSavedCase(button.dataset.openCase);
+  });
+  const newCaseButton = document.querySelector('#page-cases .page-head > button');
+  if (newCaseButton) newCaseButton.addEventListener('click', () => {
+    selectedCaseId = null; savedDossier = null;
+    dossierIds.forEach(key => { const field = document.getElementById(key); if (field.tagName === 'SELECT') field.selectedIndex = 0; else field.value = ''; });
+    renderDossierPreview({});
+  });
+  const notice = document.querySelector('#page-cases .notice p');
+  if (notice) notice.innerHTML = '<strong>Локальное хранение.</strong> Карточки находятся в браузере на этом устройстве и не синхронизируются между компьютерами. При очистке данных сайта они могут исчезнуть — регулярно скачивайте резервную копию.';
+  const caseSubtitle = document.querySelector('#page-cases .card-subtitle');
+  if (caseSubtitle) caseSubtitle.textContent = 'Ваши сохранённые карточки на этом устройстве';
+  const caseHead = document.querySelector('#page-cases .page-head');
+  caseHead.insertAdjacentHTML('beforeend', '<div class="object-actions"><button class="btn" type="button" id="exportBackup">↓ Резервная копия</button><label class="btn" for="importBackupFile">↑ Восстановить</label><input id="importBackupFile" type="file" accept=".json,application/json" style="display:none"></div>');
+  document.getElementById('exportBackup').addEventListener('click', () => downloadText('Kadastr_Pomoshnik_backup.json', JSON.stringify({format:'kadastr-pomoshnik-backup-v1', exportedAt:new Date().toISOString(), ...appStore}, null, 2)));
+  document.getElementById('importBackupFile').addEventListener('change', async event => {
+    const file = event.target.files && event.target.files[0]; event.target.value = '';
+    if (!file) return;
+    try {
+      const backup = JSON.parse(await file.text());
+      if (backup.format !== 'kadastr-pomoshnik-backup-v1' || !Array.isArray(backup.cases) || !backup.cases.every(item => item && typeof item.id === 'string' && item.data && typeof item.data === 'object')) throw new Error('invalid backup');
+      if (!confirm('Импорт заменит текущий список карточек. Продолжить?')) return;
+      appStore = {cases:backup.cases, checks:Math.max(0,Number(backup.checks)||0), review:Math.max(0,Number(backup.review)||0)};
+      selectedCaseId = null; savedDossier = null; persistAppStore(); renderCases(); renderDossierPreview({}); updateStats(); notify('Резервная копия восстановлена.');
+    } catch(e) { notify('Не удалось прочитать резервную копию Кадастр.Помощник.'); }
+  });
+  document.getElementById('saveObject').addEventListener('click',saveObject);
+  document.getElementById('saveObject2').addEventListener('click',saveObject);
+  document.getElementById('resetObject').addEventListener('click',()=>{
+    if (!confirm('Очистить поля карточки? Несохранённые изменения будут потеряны.')) return;
+    dossierIds.forEach(id=>{ if(id==='objType'||id==='objStatus') document.getElementById(id).selectedIndex=0; else document.getElementById(id).value=''; });
+    selectedCaseId = null; savedDossier=null; renderDossierPreview({}); notify('Поля карточки очищены.');
+  });
+  document.getElementById('exportDossier').addEventListener('click',()=>{
+    const data = getDossier();
+    const lines = ['КАДАСТР.ПОМОЩНИК — ДОСЬЕ ОБЪЕКТА','Сформировано: '+new Date().toLocaleString('ru-RU'),''];
+    dossierIds.forEach(id=>lines.push(dossierLabels[id]+': '+(data[id] || 'не указано')));
+    lines.push('','Примечание: данные введены пользователем, не сверены с ЕГРН и другими государственными источниками.');
+    downloadText('Досье_объекта.txt',lines.join('\n'));
+  });
+  document.getElementById('caseSearch').addEventListener('input', applyCaseSearch);
+
+  // AI analysis is enabled when this project is deployed as one Vercel project with /api/analyze.
+  let aiResultData = null;
+  function xmlToExtractedFields(xmlText) {
+    const parsed = new DOMParser().parseFromString(xmlText, 'application/xml');
+    if (parsed.querySelector('parsererror')) return {};
+    const localName = node => (node.localName || node.nodeName || '').toLowerCase().replace(/[^a-zа-яё0-9]/gi, '');
+    const aliases = {
+      cad:['cadastralnumber','кадастровыйномер','kn'], address:['address','адрес','location','местоположения'],
+      area:['area','площадь','площадьобъекта'], floors:['floors','этажность','количествонадземныхэтажей'],
+      purpose:['purpose','назначение','назначениездания']
+    };
+    const found = {};
+    Array.from(parsed.getElementsByTagName('*')).forEach(node => {
+      const key = localName(node);
+      const value = (node.textContent || '').trim();
+      if (!value || value.length > 500 || node.children.length) return;
+      Object.entries(aliases).forEach(([field, names]) => { if (!found[field] && names.includes(key)) found[field] = value; });
+    });
+    return found;
+  }
+  document.getElementById('runAI').addEventListener('click', async () => {
+    const button = document.getElementById('runAI');
+    const root = document.getElementById('aiResults');
+    if (!selectedFiles.length) { notify('Прикрепите XML, PDF, DOCX, TXT или JSON для анализа ИИ.'); return; }
+    let totalBytes = 0;
+    const aiFiles = [];
+    try {
+      for (const file of selectedFiles) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!['xml','txt','json','pdf','docx'].includes(ext)) {
+          notify('ИИ-анализ поддерживает XML, TXT, JSON, PDF и DOCX. ZIP и подписи не анализируются.'); return;
+        }
+        totalBytes += file.size;
+        if (totalBytes > 2.4 * 1024 * 1024) { notify('Для одного запроса выберите файлы общим размером не более 2,4 МБ.'); return; }
+        if (['xml','txt','json'].includes(ext)) {
+          const text = await file.text();
+          if (text.length > 180000) { notify('Текстовый файл слишком большой для одного запроса ИИ (лимит 180 000 символов на файл).'); return; }
+          aiFiles.push({name:file.name, type:'text', text});
+        } else {
+          const buf = new Uint8Array(await file.arrayBuffer());
+          let binary = '';
+          for (let i=0; i<buf.length; i+=0x8000) binary += String.fromCharCode(...buf.subarray(i, Math.min(i+0x8000, buf.length)));
+          const mime = ext === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          aiFiles.push({name:file.name, type:'file', dataUrl:'data:'+mime+';base64,'+btoa(binary)});
+        }
+      }
+      let accessCode = sessionStorage.getItem('kadastr-ai-access-code') || '';
+      if (!accessCode) { accessCode = window.prompt('Введите пароль доступа к ИИ, установленный владельцем сайта в Vercel. Пароль не хранится в файлах проекта: он действует только в этой вкладке.'); if (!accessCode) { notify('Анализ отменён: пароль не введён.'); return; } }
+      button.disabled = true; button.textContent = 'Анализируем…';
+      root.hidden = false; root.innerHTML = '<div class="card mini-card"><h3>ИИ анализирует документы</h3><p>Документы будут обработаны настроенным сервером и API модели. Не закрывайте вкладку до завершения запроса.</p></div>';
+      const response = await fetch('/api/analyze', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({accessCode, context:{objectType:document.getElementById('checkType').value, basis:document.getElementById('checkReason').value, cadastralNumber:document.getElementById('checkCad').value.trim(), note:document.getElementById('checkNote').value.trim()}, files:aiFiles})});
+      const payload = await response.json().catch(()=>({error:'Сервер вернул ответ, который не удалось прочитать.'}));
+      if (response.status === 401) { sessionStorage.removeItem('kadastr-ai-access-code'); throw new Error(payload.error || 'Неверный пароль доступа.'); }
+      if (!response.ok) throw new Error(payload.error || ('Ошибка API: '+response.status));
+      sessionStorage.setItem('kadastr-ai-access-code', accessCode);
+      aiResultData = payload;
+      renderAIResults(payload);
+      root.scrollIntoView({behavior:'smooth',block:'start'});
+      notify('ИИ-анализ завершён. Проверьте источники и выводы вручную.');
+    } catch (error) {
+      const msg = error && error.message ? error.message : 'неизвестная ошибка';
+      root.hidden = false;
+      root.innerHTML = '<div class="card mini-card"><h3>ИИ-анализ не выполнен</h3><p>'+esc(msg)+'</p><p>Проверьте, что проект развёрнут на Vercel, файл <code>api/analyze.js</code> находится в репозитории, а переменная <code>OPENAI_API_KEY</code> настроена в Vercel. При открытии через GitHub Pages маршрут /api/analyze не существует.</p></div>';
+      notify('Не удалось выполнить ИИ-анализ.');
+    } finally { button.disabled=false; button.textContent='✦ Анализ ИИ'; }
+  });
+  function renderAIResults(data) {
+    const root = document.getElementById('aiResults');
+    const findings = Array.isArray(data.findings) ? data.findings : [];
+    const severityLabel = {critical:'Критично',high:'Высокий',medium:'Средний',low:'Низкий',info:'Информация'};
+    const severityClass = {critical:'error',high:'error',medium:'warn',low:'neutral',info:'ok'};
+    const extracted = data.extracted_data || {};
+    const extractedPairs = [['cadastral_number','Кадастровый номер','objCad'],['address','Адрес','objAddress'],['area','Площадь','objArea'],['floors','Этажность','objFloors'],['purpose','Назначение','objPurpose']].filter(pair=>extracted[pair[0]]);
+    root.hidden = false;
+    root.innerHTML = '<div class="results-head"><div><div class="results-title">Результат ИИ-анализа</div><div class="results-caption">'+esc(new Date().toLocaleString('ru-RU'))+' · вывод модели требует профессиональной сверки</div></div><span class="status '+(data.overall_status==='error'?'error':data.overall_status==='ok'?'ok':'warn')+'">'+esc(data.overall_status==='ok'?'Без явных сигналов':data.overall_status==='error'?'Есть серьёзные риски':'Нужна ручная проверка')+'</span></div>'+
+      '<div class="card mini-card"><h3>Сводка</h3><p>'+esc(data.summary || 'Сводка не предоставлена.')+'</p>'+(extractedPairs.length?'<div class="kv-list">'+extractedPairs.map(pair=>'<div class="kv-row"><div class="kv-key">'+pair[1]+'</div><div class="kv-value">'+esc(extracted[pair[0]])+'</div></div>').join('')+'</div><button type="button" class="btn btn-small" id="applyExtractedAI">Перенести найденные поля в карточку</button>':'')+'</div>'+
+      '<div class="card" style="margin-top:12px">'+(findings.length?findings.map(f=>'<div class="finding"><div class="finding-icon '+(f.severity==='critical'||f.severity==='high'?'bad':f.severity==='medium'?'warn':'good')+'">'+(f.severity==='critical'||f.severity==='high'?'!':f.severity==='medium'?'?':'i')+'</div><div><b>'+esc(f.title || 'Замечание')+'</b><p>'+esc(f.description || '')+'<br><strong>Источник:</strong> '+esc(f.source || 'Не указан')+'<br><strong>Фрагмент:</strong> '+esc(f.evidence || 'Не приведён')+'<br><strong>Рекомендация:</strong> '+esc(f.recommendation || 'Сверить вручную')+'<br><strong>Уверенность модели:</strong> '+esc(f.confidence == null ? 'не указана' : f.confidence+'%')+'</p></div><span class="status '+(severityClass[f.severity]||'neutral')+'">'+esc(severityLabel[f.severity] || 'Проверить')+'</span></div>').join(''):'<div class="empty-state"><p>Модель не сформировала отдельных замечаний. Это не подтверждает соответствие техплана требованиям.</p></div>')+'<div class="disclaimer">ИИ может ошибаться и пропускать дефекты. Выводы не подтверждают сведения ЕГРН и не заменяют XSD-валидацию, юридическую оценку или решение кадастрового инженера.</div></div><div style="margin-top:12px"><button type="button" class="btn btn-primary" id="downloadAIReport">↓ Скачать отчёт ИИ (JSON)</button></div>';
+    document.getElementById('downloadAIReport').addEventListener('click',()=>downloadText('Otchet_II_analiz.json',JSON.stringify(data,null,2)));
+    document.getElementById('applyExtractedAI')?.addEventListener('click',()=>{
+      if (!confirm('Перенести предложенные ИИ значения в поля карточки? Проверьте каждое значение перед сохранением.')) return;
+      extractedPairs.forEach(([key,label,id])=>{ const field=document.getElementById(id); if (field) field.value=String(extracted[key]); });
+      renderDossierPreview(getDossier()); go('object'); notify('Поля заполнены предложениями ИИ. Сверьте их с документами и сохраните карточку.');
+    });
+  }
+
+  renderFiles(); renderDossierPreview({}); renderCases(); updateStats();
+})();
+</script>
+</body>
+</html>
